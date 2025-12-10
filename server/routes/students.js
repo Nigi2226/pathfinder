@@ -78,12 +78,27 @@ router.get('/profile', auth, async (req, res) => {
 // Update Student Profile
 router.put('/profile', auth, async (req, res) => {
   try {
+    const updates = req.body;
+    let student;
+
     if (!req.student) {
-      return res.status(404).json({ message: 'Student not found' });
+      // Self-Healing: If student missing from DB but has valid Token (req.firebaseUser)
+      // Create the student now.
+      if (req.firebaseUser) {
+        console.log('Creating missing student record for:', req.firebaseUser.email);
+        student = new Student({
+          email: req.firebaseUser.email,
+          password: 'firebase-managed',
+          ...updates
+        });
+        await student.save();
+        return res.json(student);
+      }
+      return res.status(404).json({ message: 'Student not found and no token data available' });
     }
 
-    const updates = req.body;
-    const student = await Student.findByIdAndUpdate(
+    // Normal Update
+    student = await Student.findByIdAndUpdate(
       req.student._id,
       { $set: updates },
       { new: true, runValidators: true }
@@ -92,7 +107,7 @@ router.put('/profile', auth, async (req, res) => {
     res.json(student);
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 

@@ -46,7 +46,8 @@ router.get('/', async (req, res) => {
       query.$or = [
         { name: new RegExp(search, 'i') },
         { 'academics.majorsOffered': new RegExp(search, 'i') },
-        { country: new RegExp(search, 'i') }
+        { country: new RegExp(search, 'i') },
+        { city: new RegExp(search, 'i') }
       ];
     }
 

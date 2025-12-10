@@ -54,7 +54,7 @@ const auth = async (req, res, next) => {
     // Routes handle auto-creation often, or we do it here.
     // Ideally, middleware just authenticates. 
     // We need to fetch the Student from MongoDB.
-    const Student = require('./models/student');
+    const Student = require('../models/student');
 
     // Find by email (Firebase email)
     let student = await Student.findOne({ email: decodedToken.email });
