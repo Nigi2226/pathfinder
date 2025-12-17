@@ -195,4 +195,83 @@ router.put('/shortlist/:universityId/status', auth, async (req, res) => {
   }
 });
 
+// Update Timeline Step
+router.put('/shortlist/:universityId/timeline', auth, async (req, res) => {
+  try {
+    if (!req.student) return res.status(404).json({ message: 'User not found' });
+
+    const { universityId } = req.params;
+    const { stepName, status, dueDate, completedDate } = req.body;
+
+    const student = await Student.findById(req.student._id);
+    const shortlistItem = student.shortlistedUniversities.find(
+      item => item.university.toString() === universityId
+    );
+
+    if (!shortlistItem) {
+      return res.status(404).json({ message: 'University not in shortlist' });
+    }
+
+    // Find or create the timeline step
+    const timelineItem = shortlistItem.myTimeline.find(t => t.stepName === stepName);
+    if (timelineItem) {
+      if (status) timelineItem.status = status;
+      if (dueDate) timelineItem.dueDate = dueDate;
+      if (completedDate) timelineItem.completedDate = completedDate;
+    } else {
+      shortlistItem.myTimeline.push({ stepName, status, dueDate, completedDate });
+    }
+
+    await student.save();
+    // Re-populate to return full object if needed, or just send back the specific updated list
+    await student.populate('shortlistedUniversities.university');
+
+    res.json(student.shortlistedUniversities);
+  } catch (error) {
+    console.error('Update timeline error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update Checklist Item
+router.put('/shortlist/:universityId/checklist', auth, async (req, res) => {
+  try {
+    if (!req.student) return res.status(404).json({ message: 'User not found' });
+
+    const { universityId } = req.params;
+    const { documentName, status, fileUrl } = req.body;
+
+    const student = await Student.findById(req.student._id);
+    const shortlistItem = student.shortlistedUniversities.find(
+      item => item.university.toString() === universityId
+    );
+
+    if (!shortlistItem) {
+      return res.status(404).json({ message: 'University not in shortlist' });
+    }
+
+    const checklistItem = shortlistItem.myChecklist.find(c => c.documentName === documentName);
+    if (checklistItem) {
+      if (status) checklistItem.status = status;
+      if (fileUrl) checklistItem.fileUrl = fileUrl;
+      checklistItem.lastUpdated = Date.now();
+    } else {
+      shortlistItem.myChecklist.push({
+        documentName,
+        status,
+        fileUrl,
+        lastUpdated: Date.now()
+      });
+    }
+
+    await student.save();
+    await student.populate('shortlistedUniversities.university');
+
+    res.json(student.shortlistedUniversities);
+  } catch (error) {
+    console.error('Update checklist error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

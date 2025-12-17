@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); // Server entry point
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -19,6 +19,8 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/students', require('./routes/students'));
 app.use('/api/universities', require('./routes/universities'));
+app.use('/api/resources', require('./routes/resources'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check
 app.get('/api/health', (req, res) => {

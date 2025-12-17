@@ -22,7 +22,7 @@ const universitySchema = new mongoose.Schema({
   logo: String,
   images: [String],
   description: String,
-  
+
   academics: {
     majorsOffered: [String],
     coursesHighlight: [{
@@ -33,7 +33,7 @@ const universitySchema = new mongoose.Schema({
     facultyStrength: Number,
     studentTeacherRatio: String
   },
-  
+
   admissions: {
     acceptanceRate: Number,
     applicationDeadlines: [{
@@ -54,9 +54,21 @@ const universitySchema = new mongoose.Schema({
       documents: [String],
       essayRequired: Boolean,
       interviewRequired: Boolean
-    }
+    },
+    applicationTimeline: [{
+      stepName: String, // e.g., "Submit Application", "Submit Transcripts"
+      description: String,
+      deadlineDate: Date,
+      isMandatory: { type: Boolean, default: true }
+    }],
+    documentChecklist: [{
+      documentName: String,
+      description: String,
+      isRequired: { type: Boolean, default: true },
+      format: String // e.g., "PDF", "Official Score Report"
+    }]
   },
-  
+
   financials: {
     tuitionFee: {
       domestic: { min: Number, max: Number },
@@ -71,7 +83,7 @@ const universitySchema = new mongoose.Schema({
     }],
     financialAidAvailable: Boolean
   },
-  
+
   campusLife: {
     location: String,
     campusType: { type: String, enum: ['Urban', 'Suburban', 'Rural'] },
@@ -83,14 +95,14 @@ const universitySchema = new mongoose.Schema({
     clubs: [String],
     sports: [String]
   },
-  
+
   outcomes: {
     employmentRate: Number,
     averageSalary: Number,
     topEmployers: [String],
     alumniNetwork: Number
   },
-  
+
   testimonials: [{
     studentName: String,
     graduationYear: Number,
@@ -98,7 +110,7 @@ const universitySchema = new mongoose.Schema({
     testimonial: String,
     rating: { type: Number, min: 1, max: 5 }
   }],
-  
+
   contact: {
     website: String,
     email: String,

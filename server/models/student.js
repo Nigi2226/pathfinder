@@ -70,21 +70,34 @@ const studentSchema = new mongoose.Schema({
       enum: ['Not Started', 'In Progress', 'Submitted', 'Accepted', 'Rejected', 'Waitlisted'],
       default: 'Not Started'
     },
-    notes: String
+    notes: String,
+    // Personal progress tracking
+    myTimeline: [{
+      stepName: String,
+      status: { type: String, enum: ['Pending', 'In Progress', 'Completed', 'Overdue'], default: 'Pending' },
+      dueDate: Date, // Can be overridden
+      completedDate: Date
+    }],
+    myChecklist: [{
+      documentName: String,
+      status: { type: String, enum: ['Pending', 'Uploaded', 'Verified'], default: 'Pending' },
+      fileUrl: String,
+      lastUpdated: Date
+    }]
   }]
 }, {
   timestamps: true
 });
 
 // Hash password before saving
-studentSchema.pre('save', async function(next) {
+studentSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
 // Compare password method
-studentSchema.methods.comparePassword = async function(candidatePassword) {
+studentSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

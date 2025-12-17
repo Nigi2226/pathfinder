@@ -174,7 +174,11 @@ function generateUniversityData(baseInfo) {
                     ielts: { min: 6.5 + (Math.random() * 1.5) },
                     toefl: { min: 80 + getRandomInt(0, 30) }
                 },
-                applicationDeadlines: [{ term: 'Fall', deadline: new Date('2024-01-15') }]
+                applicationDeadlines: [
+                    { term: 'Fall 2026', deadline: new Date('2025-12-01'), year: 2026 }, // Past/Closing soon depending on current date simulation
+                    { term: 'Spring 2026', deadline: new Date('2026-05-15'), year: 2026 },
+                    { term: 'Fall 2025', deadline: new Date('2025-01-01'), year: 2025 }
+                ]
             }
         },
         financials: {
