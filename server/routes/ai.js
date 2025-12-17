@@ -22,13 +22,12 @@ router.post('/brainstorm', async (req, res) => {
             });
         }
 
-        // Initialize Gemini (Inside request to ensure latest Env var is used)
+        // Initialize Gemini
         const genAI = new GoogleGenerativeAI(apiKey);
-        // Using Gemini 2.0 Flash as it is available for this key
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-        // Construct History for Gemini
-        let history = messages.map(m => `${m.role === 'user' ? 'Student' : 'Counselor'}: ${m.content}`).join('\n');
+        // Limit history to last 10 messages to save tokens
+        const recentMessages = messages.slice(-10);
+        let history = recentMessages.map(m => `${m.role === 'user' ? 'Student' : 'Counselor'}: ${m.content}`).join('\n');
 
         const prompt = `
         You are 'Pathfinder AI', an expert college admissions counselor. 
@@ -49,10 +48,33 @@ router.post('/brainstorm', async (req, res) => {
         Counselor:
         `;
 
-        // Generate
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        // Model Fallback Strategy
+        // Based on available models: gemini-2.0-flash, gemini-2.5-flash
+        const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-flash-latest"];
+        let text = "";
+        let errorToThrow = null;
+
+        for (const modelName of modelsToTry) {
+            try {
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                text = response.text();
+                break; // Success
+            } catch (err) {
+                console.warn(`Failed with model ${modelName}:`, err.message);
+                errorToThrow = err;
+
+                // If 429 (Rate Limit), we arguably SHOULD try another model if it's on a different quota, 
+                // but usually it's per-project. However, 429 can also be model-specific load. 
+                // We will continue to try fallbacks.
+
+                // If 404 (Not Found), definitely try next.
+                continue;
+            }
+        }
+
+        if (!text) throw errorToThrow || new Error("All models failed");
 
         res.json({
             role: 'assistant',
@@ -69,7 +91,7 @@ router.post('/brainstorm', async (req, res) => {
             errorMessage = "⚠️ **Invalid API Key**: The provided Google Gemini API Key is invalid. Please check your `.env` file.";
             statusCode = 401;
         } else if (error.message && (error.message.includes('404') || error.message.includes('Not Found'))) {
-            errorMessage = "⚠️ **Model Error**: The AI model is temporarily unavailable. Please try again later.";
+            errorMessage = "⚠️ **Model Error**: The AI models are temporarily unavailable. Please try again later.";
             statusCode = 404;
         } else if (error.message && (error.message.includes('429') || error.message.includes('Quota'))) {
             errorMessage = "⏳ **Rate Limit Exceeded**: You are chatting too fast for the free tier. Please wait a minute and try again.";
