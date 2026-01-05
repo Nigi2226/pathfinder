@@ -8,6 +8,8 @@ const FitScoreDisplay = ({ score, size = 'large' }) => {
     let bgColorClass = 'bg-slate-50';
     let text = 'N/A';
 
+    
+
     if (score !== undefined && score !== null) {
         if (normalizedScore >= 80) {
             colorClass = 'text-green-500 stroke-green-500';
