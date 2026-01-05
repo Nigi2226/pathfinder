@@ -17,4 +17,6 @@ const FitScoreBadge = ({ score }) => {
     );
 };
 
+
+
 export default FitScoreBadge;
