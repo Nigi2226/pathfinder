@@ -33,6 +33,9 @@ router.get('/availability/:expertId', auth, async (req, res) => {
         res.json(slots);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching availability' });
+
+
+        
     }
 });
 
